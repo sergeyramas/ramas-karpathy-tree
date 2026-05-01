@@ -408,6 +408,277 @@
     .status-wip  { color: var(--orange); font-family: var(--mono); }
     .status-plan { color: var(--text-dimmer); font-family: var(--mono); }
 
+    /* ── Deep Dive: Как было vs Как стало ── */
+    .deep-dive-intro {
+      font-size: 0.95rem;
+      color: var(--text-dim);
+      margin-bottom: 2.5rem;
+      line-height: 1.75;
+      max-width: 720px;
+    }
+
+    .subsection {
+      margin-bottom: 3.5rem;
+    }
+
+    .subsection h3 {
+      font-size: 1.05rem;
+      font-weight: 600;
+      color: var(--text);
+      margin-bottom: 1rem;
+      padding-bottom: 0.5rem;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .subsection-num {
+      font-family: var(--mono);
+      color: var(--accent);
+      margin-right: 0.5rem;
+      font-size: 0.9rem;
+    }
+
+    .bullet-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+      margin-top: 0.75rem;
+    }
+
+    .bullet-list li {
+      font-size: 0.9rem;
+      color: var(--text-dim);
+      padding-left: 1.5rem;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .bullet-list li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-dimmer);
+    }
+
+    .bullet-list li strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .bullet-list li code {
+      font-family: var(--mono);
+      font-size: 0.83em;
+      background: rgba(255,255,255,0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
+
+    .warn-block {
+      background: rgba(251, 146, 60, 0.06);
+      border: 1px solid rgba(251, 146, 60, 0.25);
+      border-radius: 6px;
+      padding: 1rem 1.25rem;
+      margin-top: 1.25rem;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      line-height: 1.65;
+    }
+
+    .warn-block strong {
+      color: var(--orange);
+      font-family: var(--mono);
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .warn-block code {
+      font-family: var(--mono);
+      font-size: 0.83em;
+      background: rgba(255,255,255,0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
+
+    .metrics-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.82rem;
+      margin-top: 1.25rem;
+    }
+
+    .metrics-table th {
+      text-align: left;
+      padding: 0.6rem 0.9rem;
+      background: var(--surface);
+      color: var(--text-dim);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.78rem;
+      letter-spacing: 0.04em;
+    }
+
+    .metrics-table td {
+      padding: 0.65rem 0.9rem;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-dim);
+      vertical-align: top;
+      line-height: 1.55;
+    }
+
+    .metrics-table tr:last-child td { border-bottom: none; }
+
+    .metrics-table td:first-child {
+      color: var(--text);
+      font-weight: 500;
+      white-space: nowrap;
+    }
+
+    .metrics-table td:nth-child(2) {
+      color: var(--red);
+      opacity: 0.8;
+    }
+
+    .metrics-table td:nth-child(3) {
+      color: var(--green);
+    }
+
+    .metrics-table td code {
+      font-family: var(--mono);
+      font-size: 0.83em;
+      background: rgba(255,255,255,0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
+
+    .scenario-list {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+      margin-top: 1.25rem;
+    }
+
+    .scenario-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .scenario-title {
+      font-family: var(--mono);
+      font-size: 0.8rem;
+      color: var(--accent);
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      margin-bottom: 0.75rem;
+    }
+
+    .scenario-row {
+      display: flex;
+      gap: 0.75rem;
+      margin-bottom: 0.5rem;
+      font-size: 0.875rem;
+      line-height: 1.6;
+    }
+
+    .scenario-row:last-child { margin-bottom: 0; }
+
+    .scenario-label {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      flex-shrink: 0;
+      width: 3.5rem;
+      padding-top: 0.1rem;
+    }
+
+    .scenario-label.before { color: var(--red); opacity: 0.8; }
+    .scenario-label.after  { color: var(--green); }
+
+    .scenario-text { color: var(--text-dim); }
+
+    .scenario-text code {
+      font-family: var(--mono);
+      font-size: 0.83em;
+      background: rgba(255,255,255,0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
+
+    .data-flow-block {
+      margin-top: 1.25rem;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .flow-phase {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+    }
+
+    .flow-phase-title {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--accent);
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      margin-bottom: 0.85rem;
+    }
+
+    .flow-steps {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .flow-steps li {
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      padding-left: 2rem;
+      position: relative;
+      line-height: 1.6;
+    }
+
+    .flow-steps li .step-num {
+      position: absolute;
+      left: 0;
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      color: var(--text-dimmer);
+    }
+
+    .flow-steps li code {
+      font-family: var(--mono);
+      font-size: 0.83em;
+      background: rgba(255,255,255,0.05);
+      padding: 0.1em 0.3em;
+      border-radius: 3px;
+    }
+
+    .flow-steps li strong {
+      color: var(--text);
+      font-weight: 500;
+    }
+
+    .plan-b-note {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.25rem 1.5rem;
+      margin-top: 1.25rem;
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      line-height: 1.7;
+    }
+
+    .plan-b-note strong {
+      color: var(--text);
+    }
+
     /* ── Footer ── */
     footer {
       padding: 3rem 0;
@@ -451,6 +722,7 @@
       <li><a href="#problem">Проблема</a></li>
       <li><a href="#how-it-works">Как работает</a></li>
       <li><a href="#comparison">vs. Оригинал</a></li>
+      <li><a href="#deep-dive">Как было / Как стало</a></li>
       <li><a href="#quickstart">Быстрый старт</a></li>
       <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree">GitHub</a></li>
     </ul>
@@ -643,6 +915,257 @@
         </tr>
       </tbody>
     </table>
+  </div>
+</section>
+
+<!-- ── Deep Dive: Как было vs Как стало ── -->
+<section id="deep-dive">
+  <div class="container">
+    <div class="eyebrow">Deep Dive</div>
+    <h2>Как было vs Как стало</h2>
+    <p class="deep-dive-intro">
+      Это самая важная часть документа. Без понимания реальной проблемы не ясно, зачем нужен апдейт.
+      Ниже — конкретика: что такое оригинальный паттерн, где он ломается, реальная история поломки,
+      и как именно архитектура дерева её решает.
+    </p>
+
+    <!-- 1. Karpathy original -->
+    <div class="subsection">
+      <h3><span class="subsection-num">1.</span> Что такое Karpathy original</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-bottom:1rem">
+        Андрей Карпати <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">описал паттерн «LLM Wiki»</a> — три слоя: raw sources → wiki → schema.
+        В Claude Code это выглядит как:
+      </p>
+      <ul class="bullet-list">
+        <li><code>SessionEnd</code> хук пишет flush в <code>daily/&lt;date&gt;.md</code> — <strong>плоско</strong>, все проекты в одном файле</li>
+        <li>ночной cron (<code>compile.py</code>) читает daily, обновляет <code>knowledge/index.md</code></li>
+        <li><code>SessionStart</code> хук грузит <code>knowledge/index.md</code> + последний daily в <strong>каждую</strong> новую сессию</li>
+      </ul>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-top:1rem;margin-bottom:0.75rem">
+        Идея блестящая. Но в наивной реализации:
+      </p>
+      <ul class="bullet-list">
+        <li><strong>20+ тыс. токенов на старт каждой сессии</strong> — index растёт линейно, грузится весь</li>
+        <li><strong>Контекст всех проектов вперемешку</strong> — открыл чат для betaline, видишь обсуждения ebay, fundament21</li>
+        <li><strong>Нет лимита на стоимость</strong> — flush гонит Sonnet каждый раз, даже если ты сделал <code>ls &amp;&amp; pwd</code></li>
+        <li><strong>Если flush падает — тишина</strong> — <code>daily/</code> пустой, ты не знаешь что сломано</li>
+      </ul>
+    </div>
+
+    <!-- 2. Реальная картина "до" -->
+    <div class="subsection">
+      <h3><span class="subsection-num">2.</span> Реальная картина «до»</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-bottom:0.75rem">
+        Karpathy compiler был поставлен 21 апреля 2026. До 1 мая он <strong style="color:var(--text)">молча не работал ни одного дня</strong>.
+      </p>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-bottom:0.75rem">
+        <code>uv</code> не был установлен на системе. Хук пытался спавнить <code>flush.py</code> через <code>uv run</code>,
+        получал <code>FileNotFoundError</code>, тихо логировал ошибку и выходил. <code>daily/</code> оставался пустым.
+        Казалось — работает в фоне.
+      </p>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-bottom:0.75rem">
+        Параллельно Jarvis-vault велся руками в Obsidian — отдельная система. Между Karpathy compiler и Jarvis vault не было никакой связи. Двойная база, оба источника рассинхронизированы.
+      </p>
+      <p style="color:var(--text-dim);font-size:0.9rem;font-weight:500;margin-bottom:0.5rem">Симптомы:</p>
+      <ul class="bullet-list">
+        <li>Возвращаешься через 3 часа — пересказываешь Claude задачу с нуля</li>
+        <li>Открываешь чат в <code>betaline/</code> — модель «помнит» обрывки про <code>ebay</code> из общего контекста</li>
+        <li>Не понимаешь сколько денег уходит на flush</li>
+        <li>Дайджеста за день нет — что было вчера? ищешь в git-истории или Obsidian руками</li>
+      </ul>
+      <div class="warn-block">
+        <strong>Warning</strong> — если твой <code>daily/</code> пустой после нескольких дней работы:
+        проверь <code>logs/flush.log</code>. Вероятно, <code>uv</code> недоступен по PATH в хуке.
+        Хуки работают со stripped PATH — наивная установка именно на этом и ломается.
+        Решение: прописывай абсолютный путь к <code>uv</code> через переменную <code>UV_BIN</code>.
+      </div>
+    </div>
+
+    <!-- 3. Метафора дерева -->
+    <div class="subsection">
+      <h3><span class="subsection-num">3.</span> Что починил апдейт — метафора дерева</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-bottom:1rem">
+        Память не куча, а структура с уровнями релевантности. Каждый уровень загружается по-разному.
+      </p>
+      <pre>КОРНИ — глубокий архив
+  wiki/_archive/              cold storage, вне активного контекста
+  доступ: только через /wiki-query
+
+СТВОЛ — всегда в контексте, ~1500 токенов
+  ~/CLAUDE.md                     ~500 токенов
+  Karpathy_Guidelines.md          ~300 токенов
+  global MEMORY.md (≤ 20 строк)   ~150 токенов
+  wiki/index.md (только заголовки) ~400 токенов
+
+ВЕТКИ — по запросу, не на старте
+  wiki/entities/   wiki/ideas/   wiki/references/
+
+ЛИСТИКИ — грузится ОДИН по cwd
+  wiki/projects/&lt;slug&gt;/
+    ├── index.md             ~600 токенов
+    ├── MEMORY.md            ~500 токенов
+    ├── open-questions.md
+    └── journal/&lt;вчера&gt;.md  ~800 токенов
+
+HOT-STATE — в самом репо проекта
+  &lt;project&gt;/AGENT_ACTIVITY.md</pre>
+      <p style="color:var(--text-dim);font-size:0.875rem;line-height:1.65;margin-top:1rem">
+        Когда открываешь Claude Code в <code>~/Documents/betaline/</code>, <strong style="color:var(--text)">только</strong> ствол + листик <code>betaline/</code> грузятся в контекст.
+        <code>ebay/</code>, <code>fundament21/</code>, <code>karpathy-vault/</code> — невидимы.
+      </p>
+    </div>
+
+    <!-- 4. Поток данных -->
+    <div class="subsection">
+      <h3><span class="subsection-num">4.</span> Поток данных — технически</h3>
+      <div class="data-flow-block">
+        <div class="flow-phase">
+          <div class="flow-phase-title">SessionEnd hook — закрытие сессии</div>
+          <ol class="flow-steps">
+            <li><span class="step-num">1.</span> Хук получает <code>cwd</code> из stdin (Claude Code передаёт через JSON)</li>
+            <li><span class="step-num">2.</span> Извлекает последние ~30 turns транскрипта в markdown-формат</li>
+            <li><span class="step-num">3.</span> Спавнит детач-процесс <code>flush.py</code> через <strong>абсолютный путь</strong> <code>~/.local/bin/uv</code> — потому что хуки работают со stripped PATH</li>
+            <li><span class="step-num">4.</span> <code>flush.py</code> определяет slug по cwd через <code>projects.json</code> (longest-prefix match)</li>
+            <li><span class="step-num">5.</span> <strong>Pre-filter без LLM</strong> — контекст &lt; 1000 символов или только bash-команды → пропуск, $0</li>
+            <li><span class="step-num">6.</span> Haiku 4.5 (60-секундный timeout) сжимает в структурированную выжимку 200–400 слов: контекст / решения / препятствия / open-вопросы / action items</li>
+            <li><span class="step-num">7.</span> Append к <code>daily/&lt;slug&gt;/&lt;date&gt;.md</code></li>
+          </ol>
+        </div>
+        <div class="flow-phase">
+          <div class="flow-phase-title">SessionStart hook — старт сессии</div>
+          <ol class="flow-steps">
+            <li><span class="step-num">1.</span> Хук читает <code>cwd</code> из stdin</li>
+            <li><span class="step-num">2.</span> Резолвит slug через <code>projects.json</code></li>
+            <li><span class="step-num">3.</span> Собирает: ствол + <strong>только</strong> листик активного проекта (index, MEMORY, open-questions, последние 3 journal-файла) + сегодняшний/вчерашний daily log + <code>AGENT_ACTIVITY.md</code></li>
+            <li><span class="step-num">4.</span> Жёсткий cap <strong>18 000 символов (~5000 токенов)</strong> — trunk сначала, потом truncate листика</li>
+            <li><span class="step-num">5.</span> Возвращает JSON хуку, Claude Code инжектит как <code>additionalContext</code></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. Метрики -->
+    <div class="subsection">
+      <h3><span class="subsection-num">5.</span> Конкретные метрики до/после</h3>
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Параметр</th>
+            <th>Karpathy original</th>
+            <th>Дерево Рамас-Карпати</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>Токенов в SessionStart</td>
+            <td>15–25k (всё подряд)</td>
+            <td>3–5k (только активный листик)</td>
+          </tr>
+          <tr>
+            <td>Утечка проектов</td>
+            <td>Все видны всегда</td>
+            <td>Изолированы по cwd</td>
+          </tr>
+          <tr>
+            <td>Цена за flush средней сессии</td>
+            <td>$0.05–0.15 (Sonnet, без фильтра)</td>
+            <td>$0.005–0.01 (Haiku, после pre-filter)</td>
+          </tr>
+          <tr>
+            <td>Тривиальная сессия (<code>ls</code> + <code>pwd</code>)</td>
+            <td>$0.05+ (всё равно гонит LLM)</td>
+            <td>$0 (pre-filter режет)</td>
+          </tr>
+          <tr>
+            <td>Стоимость/мес, 4 проекта × 10 сессий/день</td>
+            <td>$60–150</td>
+            <td>$15–30 (с Plan B)</td>
+          </tr>
+          <tr>
+            <td>Видимость поломок</td>
+            <td>Тишина, <code>daily/</code> пустой</td>
+            <td><code>logs/flush.log</code>, статусы <code>FLUSH_OK</code> / <code>FLUSH_ERROR</code></td>
+          </tr>
+          <tr>
+            <td>Память про вчера</td>
+            <td>Угадываешь или ищешь руками</td>
+            <td>Daily log активного slug автоматически в SessionStart</td>
+          </tr>
+          <tr>
+            <td>Fault tolerance flush</td>
+            <td>Один failure mode (silent exit)</td>
+            <td>Timeout + sanitize + cleanup + structured logs</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- 6. Сценарии -->
+    <div class="subsection">
+      <h3><span class="subsection-num">6.</span> Сценарии повседневного использования</h3>
+      <div class="scenario-list">
+        <div class="scenario-card">
+          <div class="scenario-title">Сценарий A — вернулся через 3 часа в проект</div>
+          <div class="scenario-row">
+            <span class="scenario-label before">раньше</span>
+            <span class="scenario-text">Открываешь чат в <code>betaline</code>, спрашиваешь «на чём остановились?» — модель не знает, либо рассказывает про <code>ebay</code> из общего контекста. Пересказываешь сам.</span>
+          </div>
+          <div class="scenario-row">
+            <span class="scenario-label after">сейчас</span>
+            <span class="scenario-text">Модель читает <code>daily/betaline/&lt;сегодня&gt;.md</code> + <code>journal/&lt;вчера&gt;.md</code> + <code>open-questions.md</code> — отвечает «вчера остановились на webhook scaling, висят вопросы X, Y». Без пересказа.</span>
+          </div>
+        </div>
+        <div class="scenario-card">
+          <div class="scenario-title">Сценарий B — два проекта параллельно</div>
+          <div class="scenario-row">
+            <span class="scenario-label before">раньше</span>
+            <span class="scenario-text">В каждом чате весь контекст обоих проектов смешан, модель путается, иногда даёт совет из чужой архитектуры.</span>
+          </div>
+          <div class="scenario-row">
+            <span class="scenario-label after">сейчас</span>
+            <span class="scenario-text">Физически невозможно — <code>_project_leaf("ebay")</code> не читает <code>wiki/projects/betaline/</code>. Тестом покрыто: <code>test_does_not_leak_other_projects</code>.</span>
+          </div>
+        </div>
+        <div class="scenario-card">
+          <div class="scenario-title">Сценарий C — открыл Claude в ~/Downloads</div>
+          <div class="scenario-row">
+            <span class="scenario-label before">раньше</span>
+            <span class="scenario-text">Грузится весь knowledge index, ~20k токенов, контекст забит ничего не значащей информацией.</span>
+          </div>
+          <div class="scenario-row">
+            <span class="scenario-label after">сейчас</span>
+            <span class="scenario-text">slug = <code>_global</code>, грузится только trunk (CLAUDE.md, Karpathy_Guidelines, wiki/index.md headers) — ~1500 токенов. Чисто.</span>
+          </div>
+        </div>
+        <div class="scenario-card">
+          <div class="scenario-title">Сценарий D — сделал ls &amp;&amp; cat README.md</div>
+          <div class="scenario-row">
+            <span class="scenario-label before">раньше</span>
+            <span class="scenario-text">SessionEnd триггерит flush, Sonnet тратит ~$0.05 чтобы «выжать» «пользователь посмотрел README».</span>
+          </div>
+          <div class="scenario-row">
+            <span class="scenario-label after">сейчас</span>
+            <span class="scenario-text">pre-filter определяет <code>TRIVIAL_OPS</code> → <code>return False</code>, $0 потрачено, daily log не загрязняется бесполезным.</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 7. Plan B -->
+    <div class="subsection" style="margin-bottom:0">
+      <h3><span class="subsection-num">7.</span> Что ещё впереди — Plan B</h3>
+      <p style="color:var(--text-dim);font-size:0.9rem;line-height:1.7;margin-bottom:1rem">
+        Сейчас зафиксирован <strong style="color:var(--text)">foundation</strong>: стенография в <code>daily/&lt;slug&gt;/</code>.
+        Plan B — ночной compile (Sonnet 4.6) который читает daily и обновляет project leaves
+        (<code>journal/</code>, <code>decisions.md</code>, <code>lessons.md</code>, <code>MEMORY.md</code>), плюс утренний digest.
+      </p>
+      <div class="plan-b-note">
+        <strong>Foundation работает, но Plan B compile.py ещё не сделан</strong> — daily logs пока накапливаются как сырьё.
+        Запустится после 1–2 недель работы foundation в проде: нужно сначала убедиться, что pipeline не падает
+        и логи имеют нужную структуру для компиляции.
+      </div>
+    </div>
+
   </div>
 </section>
 
