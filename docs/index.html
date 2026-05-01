@@ -1,9 +1,13 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Ramas-Karpathy-Tree — Per-project memory for Claude Code</title>
+  <title>Ramas-Karpathy-Tree — Память по проектам для Claude Code</title>
+  <meta name="description" content="cwd-aware слой памяти для Claude Code, основанный на паттерне Karpathy LLM Wiki. Каждая сессия загружает только то, что относится к текущему проекту." />
+  <meta property="og:title" content="Ramas-Karpathy-Tree — Память по проектам для Claude Code" />
+  <meta property="og:description" content="cwd-aware слой памяти для Claude Code, основанный на паттерне Karpathy LLM Wiki. Каждая сессия загружает только то, что относится к текущему проекту." />
+  <meta property="og:type" content="website" />
   <style>
     :root {
       --bg: #0d0d0d;
@@ -444,10 +448,10 @@
   <div class="container">
     <span class="nav-logo">ramas-karpathy-tree</span>
     <ul class="nav-links">
-      <li><a href="#problem">Problem</a></li>
-      <li><a href="#how-it-works">How it works</a></li>
-      <li><a href="#comparison">vs. Original</a></li>
-      <li><a href="#quickstart">Quick start</a></li>
+      <li><a href="#problem">Проблема</a></li>
+      <li><a href="#how-it-works">Как работает</a></li>
+      <li><a href="#comparison">vs. Оригинал</a></li>
+      <li><a href="#quickstart">Быстрый старт</a></li>
       <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree">GitHub</a></li>
     </ul>
   </div>
@@ -457,15 +461,15 @@
 <section class="hero" id="hero">
   <div class="container">
     <div class="eyebrow">Memory Architecture v2 — Foundation Release</div>
-    <h1>Per-project memory<br/><span class="dim">for Claude Code.</span></h1>
+    <h1>Память по проектам<br/><span class="dim">для Claude Code.</span></h1>
     <p class="hero-sub">
-      A cwd-aware, per-project memory layer built on top of Karpathy's LLM Wiki pattern.
-      Each session loads only what's relevant to the project you're in.
-      Everything else stays quiet.
+      cwd-aware слой памяти, основанный на паттерне Karpathy LLM Wiki.
+      Каждая сессия загружает только то, что относится к текущему проекту.
+      Всё остальное молчит.
     </p>
     <div class="btn-row">
-      <a class="btn btn-primary" href="https://github.com/sergeyramas/ramas-karpathy-tree">View on GitHub</a>
-      <a class="btn btn-ghost" href="#quickstart">Quick start →</a>
+      <a class="btn btn-primary" href="https://github.com/sergeyramas/ramas-karpathy-tree">Смотреть на GitHub</a>
+      <a class="btn btn-ghost" href="#quickstart">Быстрый старт →</a>
     </div>
   </div>
 </section>
@@ -477,17 +481,17 @@
 <pre style="background:none;border:none;padding:0;font-size:0.82rem;">
 <span class="tree-label">~/.claude-memory-compiler/</span>
 <span class="tree-label">│</span>
-<span class="tree-roots">├── ROOTS        wiki/_archive/                     ← archived knowledge</span>
-<span class="tree-trunk">├── TRUNK        ~/CLAUDE.md                        ← always loaded</span>
+<span class="tree-roots">├── КОРНИ        wiki/_archive/                     ← архивные знания</span>
+<span class="tree-trunk">├── СТВОЛ        ~/CLAUDE.md                        ← всегда загружен</span>
 <span class="tree-trunk">│              Karpathy_Guidelines.md</span>
 <span class="tree-trunk">│              global MEMORY.md</span>
-<span class="tree-trunk">│              wiki/index.md (100 lines)</span>
-<span class="tree-branches">├── BRANCHES     entities/  ideas/  references/      ← on demand</span>
-<span class="tree-leaves">├── LEAVES       wiki/projects/myapp/               ← active slug only</span>
+<span class="tree-trunk">│              wiki/index.md (100 строк)</span>
+<span class="tree-branches">├── ВЕТКИ        entities/  ideas/  references/      ← по запросу</span>
+<span class="tree-leaves">├── ЛИСТИКИ      wiki/projects/myapp/               ← только активный slug</span>
 <span class="tree-leaves">│                ├── index.md</span>
-<span class="tree-leaves">│                ├── MEMORY.md      (≤30 lines)</span>
+<span class="tree-leaves">│                ├── MEMORY.md      (≤30 строк)</span>
 <span class="tree-leaves">│                └── journal/2026-05-01.md</span>
-<span class="tree-hot">└── HOT-STATE    myapp/AGENT_ACTIVITY.md            ← live changes</span>
+<span class="tree-hot">└── HOT-STATE    myapp/AGENT_ACTIVITY.md            ← живые изменения</span>
 </pre>
     </div>
   </div>
@@ -496,26 +500,26 @@
 <!-- ── Problem ── -->
 <section id="problem">
   <div class="container">
-    <h2>What breaks at scale</h2>
+    <h2>Где ломается плоский подход</h2>
     <p style="color:var(--text-dim);margin-bottom:0.5rem">
-      The flat Karpathy pattern works for one project. When you have four:
+      Паттерн Карпати отлично работает для одного проекта. Когда их четыре:
     </p>
     <ul class="pain-list">
       <li class="pain-item">
         <span class="pain-icon">✗</span>
-        <span class="pain-text">Every session loads knowledge from all projects. Debugging <code style="font-family:var(--mono);font-size:0.85em">sideproject</code> while paying for <code style="font-family:var(--mono);font-size:0.85em">work-api</code> context.</span>
+        <span class="pain-text">Каждая сессия загружает знания из всех проектов. Вы отлаживаете <code style="font-family:var(--mono);font-size:0.85em">sideproject</code>, а платите за контекст <code style="font-family:var(--mono);font-size:0.85em">work-api</code>.</span>
       </li>
       <li class="pain-item">
         <span class="pain-icon">✗</span>
-        <span class="pain-text">A decision from one codebase bleeds into another. The LLM sees "use Postgres" from a different project and applies it everywhere.</span>
+        <span class="pain-text">Решения из одной кодовой базы просачиваются в другую. LLM видит «использовать Postgres» из чужого проекта и применяет везде.</span>
       </li>
       <li class="pain-item">
         <span class="pain-icon">✗</span>
-        <span class="pain-text">Every session flushes — even sessions that were just <code style="font-family:var(--mono);font-size:0.85em">ls</code> and <code style="font-family:var(--mono);font-size:0.85em">pwd</code>. You pay API cost for nothing.</span>
+        <span class="pain-text">Каждая сессия сбрасывается — даже та, где было только <code style="font-family:var(--mono);font-size:0.85em">ls</code> и <code style="font-family:var(--mono);font-size:0.85em">pwd</code>. Вы платите за API ни за что.</span>
       </li>
       <li class="pain-item">
         <span class="pain-icon">✗</span>
-        <span class="pain-text">Cost scales with the number of projects in your wiki, not with your actual current work.</span>
+        <span class="pain-text">Стоимость растёт пропорционально числу проектов в wiki, а не вашей реальной текущей работе.</span>
       </li>
     </ul>
   </div>
@@ -524,27 +528,27 @@
 <!-- ── How it works ── -->
 <section id="how-it-works">
   <div class="container">
-    <h2>How it works</h2>
+    <h2>Как это работает</h2>
 
     <div class="compare-grid">
       <div class="compare-card">
-        <div class="compare-tag">Karpathy original</div>
+        <div class="compare-tag">Оригинальный паттерн Карпати</div>
         <ul>
-          <li>Flat daily log — one file, all projects</li>
-          <li>SessionStart loads full knowledge/index.md</li>
-          <li>Every session flushes to LLM</li>
-          <li>Single MEMORY.md for all context</li>
-          <li>No project isolation</li>
+          <li>Плоский дневной лог — один файл, все проекты</li>
+          <li>SessionStart загружает весь knowledge/index.md</li>
+          <li>Каждая сессия идёт в LLM на flush</li>
+          <li>Единый MEMORY.md для всего контекста</li>
+          <li>Нет изоляции проектов</li>
         </ul>
       </div>
       <div class="compare-card after">
         <div class="compare-tag after-tag">Ramas-Karpathy-Tree</div>
         <ul>
-          <li>daily/&lt;slug&gt;/&lt;date&gt;.md — per project</li>
-          <li>SessionStart loads trunk + active leaf only</li>
-          <li>Pre-filter: trivial sessions skip LLM call ($0)</li>
-          <li>Two-tier MEMORY — global + per-project</li>
-          <li>Strict slug isolation via cwd routing</li>
+          <li>daily/&lt;slug&gt;/&lt;date&gt;.md — по проекту</li>
+          <li>SessionStart загружает ствол + активный листик</li>
+          <li>Pre-filter: тривиальные сессии не идут в LLM ($0)</li>
+          <li>Двухуровневый MEMORY — глобальный + per-project</li>
+          <li>Строгая slug-изоляция через cwd routing</li>
         </ul>
       </div>
     </div>
@@ -552,7 +556,7 @@
     <div style="margin-top:3rem">
       <div class="code-label">slug_router.py — longest-prefix cwd match</div>
       <pre><span class="kw">def</span> <span class="fn">resolve_slug</span>(cwd: <span class="fn">str</span>, config_path: Path) -&gt; <span class="fn">str</span>:
-    <span class="cmt">"""Return slug for cwd, or '_global' if no prefix matches."""</span>
+    <span class="cmt">"""Вернуть slug для cwd, или '_global' если нет совпадений."""</span>
     config = json.loads(config_path.read_text())
     routes = config.get(<span class="str">"routes"</span>, [])
     fallback = config.get(<span class="str">"fallback_slug"</span>, <span class="str">"_global"</span>)
@@ -568,7 +572,7 @@
     </div>
 
     <div style="margin-top:2rem">
-      <div class="code-label">pre_filter.py — deterministic skip, no LLM cost</div>
+      <div class="code-label">pre_filter.py — детерминированный пропуск без LLM</div>
       <pre><span class="kw">def</span> <span class="fn">should_flush</span>(transcript: <span class="fn">str</span>, char_threshold: <span class="fn">int</span> = <span class="num">1000</span>) -&gt; FilterDecision:
     <span class="kw">if not</span> transcript.strip():
         <span class="kw">return</span> FilterDecision(<span class="kw">False</span>, FilterReason.EMPTY)
@@ -576,7 +580,7 @@
     <span class="kw">if</span> len(transcript) &lt; char_threshold:
         <span class="kw">return</span> FilterDecision(<span class="kw">False</span>, FilterReason.TOO_SHORT)
 
-    <span class="cmt"># all lines match trivial bash / no-op assistant patterns?</span>
+    <span class="cmt"># все строки совпадают с тривиальными bash / no-op паттернами?</span>
     non_trivial = sum(
         <span class="num">1</span> <span class="kw">for</span> line <span class="kw">in</span> transcript.splitlines()
         <span class="kw">if not</span> any(p.search(line) <span class="kw">for</span> p <span class="kw">in</span> TRIVIAL_PATTERNS)
@@ -592,50 +596,50 @@
 <!-- ── Comparison table ── -->
 <section id="comparison">
   <div class="container">
-    <h2>Karpathy original vs Ramas-Karpathy-Tree</h2>
+    <h2>Оригинальный паттерн Карпати vs Ramas-Karpathy-Tree</h2>
     <table class="feat-table">
       <thead>
         <tr>
-          <th>Dimension</th>
+          <th>Параметр</th>
           <th>Karpathy LLM Wiki</th>
           <th>Ramas-Karpathy-Tree</th>
         </tr>
       </thead>
       <tbody>
         <tr>
-          <td>Daily logs</td>
-          <td>daily/&lt;date&gt;.md — flat, all projects</td>
+          <td>Дневные логи</td>
+          <td>daily/&lt;date&gt;.md — плоский, все проекты</td>
           <td>daily/&lt;slug&gt;/&lt;date&gt;.md <span class="tag-new">new</span></td>
         </tr>
         <tr>
-          <td>Session start</td>
-          <td>Loads full knowledge/index.md</td>
-          <td>Trunk + active slug's leaf only <span class="tag-new">new</span></td>
+          <td>Старт сессии</td>
+          <td>Загружает весь knowledge/index.md</td>
+          <td>Ствол + только листик активного slug <span class="tag-new">new</span></td>
         </tr>
         <tr>
-          <td>Project isolation</td>
-          <td>None</td>
-          <td>Strict — slug router prevents leaks <span class="tag-new">new</span></td>
+          <td>Изоляция проектов</td>
+          <td>Нет</td>
+          <td>Строгая — slug router исключает утечки <span class="tag-new">new</span></td>
         </tr>
         <tr>
           <td>Pre-filter</td>
-          <td>None — every session costs money</td>
-          <td>Deterministic Python — ~40-60% skip rate <span class="tag-new">new</span></td>
+          <td>Нет — каждая сессия стоит денег</td>
+          <td>Детерминированный Python — ~40-60% пропуска <span class="tag-new">new</span></td>
         </tr>
         <tr>
-          <td>Flush model</td>
-          <td>Configurable</td>
+          <td>Модель flush</td>
+          <td>Настраивается</td>
           <td>Haiku 4.5 — ~$0.005/flush</td>
         </tr>
         <tr>
-          <td>Memory structure</td>
-          <td>One MEMORY.md</td>
-          <td>Global (≤20 lines) + per-project (≤30 lines) <span class="tag-new">new</span></td>
+          <td>Структура памяти</td>
+          <td>Один MEMORY.md</td>
+          <td>Глобальный (≤20 строк) + per-project (≤30 строк) <span class="tag-new">new</span></td>
         </tr>
         <tr>
-          <td>Test coverage</td>
-          <td>Not specified</td>
-          <td>18 unit tests, TDD from day 1</td>
+          <td>Покрытие тестами</td>
+          <td>Не указано</td>
+          <td>18 юнит-тестов, TDD с первого дня</td>
         </tr>
       </tbody>
     </table>
@@ -645,30 +649,30 @@
 <!-- ── Cost ── -->
 <section id="cost">
   <div class="container">
-    <h2>Cost breakdown</h2>
+    <h2>Разбивка стоимости</h2>
     <p style="color:var(--text-dim);margin-bottom:0.25rem;font-size:0.9rem">
-      Active developer, 4 projects, ~3-5 sessions/day.
+      Активный разработчик, 4 проекта, ~3-5 сессий в день.
     </p>
     <div class="cost-total">
       <div class="cost-row">
-        <span class="cost-label">Session flush — Haiku 4.5 (~100/mo, after pre-filter)</span>
+        <span class="cost-label">Session flush — Haiku 4.5 (~100/мес, после pre-filter)</span>
         <span class="cost-val">~$0.50</span>
       </div>
       <div class="cost-row">
-        <span class="cost-label">Session start context — Sonnet 4.6 (~150/mo)</span>
+        <span class="cost-label">Старт сессии — Sonnet 4.6 (~150/мес)</span>
         <span class="cost-val">~$1.50</span>
       </div>
       <div class="cost-row">
-        <span class="cost-label">Plan B: nightly compile — Sonnet 4.6 (coming soon)</span>
+        <span class="cost-label">Plan B: ночная компиляция — Sonnet 4.6 (скоро)</span>
         <span class="cost-val">~$3.00</span>
       </div>
       <div class="cost-row">
-        <span class="cost-label">Total / month</span>
+        <span class="cost-label">Итого / месяц</span>
         <span class="cost-val" style="color:var(--green)">~$5–15</span>
       </div>
     </div>
     <p style="margin-top:1rem;font-size:0.85rem;color:var(--text-dimmer)">
-      Naive flat approach with same workload: $30–80/month.
+      Наивный плоский подход при той же нагрузке: $30–80/месяц.
     </p>
   </div>
 </section>
@@ -676,33 +680,33 @@
 <!-- ── Quick start ── -->
 <section id="quickstart">
   <div class="container">
-    <h2>Quick start</h2>
+    <h2>Быстрый старт</h2>
     <p style="color:var(--text-dim);margin-bottom:2rem;font-size:0.9rem">
-      Mac, Python 3.12+, uv, Claude Code 1.x. Full guide in README.
+      Mac, Python 3.12+, uv, Claude Code 1.x. Полное руководство — в README.
     </p>
 
-    <div class="code-label">1. Clone</div>
+    <div class="code-label">1. Клонируем</div>
     <pre>git clone https://github.com/sergeyramas/ramas-karpathy-tree \
   ~/.claude-memory-compiler
 cd ~/.claude-memory-compiler</pre>
 
-    <div class="code-label" style="margin-top:1.5rem">2. Install</div>
+    <div class="code-label" style="margin-top:1.5rem">2. Устанавливаем</div>
     <pre>uv sync</pre>
 
-    <div class="code-label" style="margin-top:1.5rem">3. Configure projects.json</div>
+    <div class="code-label" style="margin-top:1.5rem">3. Настраиваем projects.json</div>
     <pre>cp projects.json.example projects.json
-# Edit: add your cwd → slug mappings</pre>
+# Редактируем: добавляем маппинг cwd → slug</pre>
 
-    <div class="code-label" style="margin-top:1.5rem">4. Set env vars (add to ~/.zshrc)</div>
+    <div class="code-label" style="margin-top:1.5rem">4. Указываем env vars (добавляем в ~/.zshrc)</div>
     <pre>export VAULT_DIR="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/YourVault"
 export UV_BIN="$HOME/.local/bin/uv"</pre>
 
-    <div class="code-label" style="margin-top:1.5rem">5. Register hooks in ~/.claude/settings.json, then run tests</div>
+    <div class="code-label" style="margin-top:1.5rem">5. Регистрируем hooks в ~/.claude/settings.json, запускаем тесты</div>
     <pre>uv run pytest tests/ -v
-# 18 passed — you're set.</pre>
+# 18 passed — всё готово.</pre>
 
     <div class="btn-row" style="margin-top:2rem">
-      <a class="btn btn-primary" href="https://github.com/sergeyramas/ramas-karpathy-tree#quick-start-mac">Full setup guide →</a>
+      <a class="btn btn-primary" href="https://github.com/sergeyramas/ramas-karpathy-tree#быстрый-старт-mac">Полное руководство →</a>
     </div>
   </div>
 </section>
@@ -710,27 +714,27 @@ export UV_BIN="$HOME/.local/bin/uv"</pre>
 <!-- ── Roadmap ── -->
 <section id="roadmap">
   <div class="container">
-    <h2>Roadmap</h2>
+    <h2>Роадмап</h2>
     <ul class="roadmap-list">
       <li class="roadmap-item">
         <span class="status-done">[done]</span>
-        <span>Foundation: cwd routing, pre-filter, per-slug flush, cwd-aware session-start, two-tier MEMORY scaffold</span>
+        <span>Foundation: cwd routing, pre-filter, per-slug flush, cwd-aware session-start, двухуровневый scaffold MEMORY</span>
       </li>
       <li class="roadmap-item">
         <span class="status-plan">[ ]</span>
-        <span>Plan B: compile.py — nightly Sonnet digest of daily logs into knowledge/ articles</span>
+        <span>Plan B: compile.py — ночной дайджест дневных логов в статьи knowledge/ через Sonnet</span>
       </li>
       <li class="roadmap-item">
         <span class="status-plan">[ ]</span>
-        <span>Plan B: digest.py — weekly cross-project synthesis</span>
+        <span>Plan B: digest.py — еженедельный кросс-проектный синтез</span>
       </li>
       <li class="roadmap-item">
         <span class="status-plan">[ ]</span>
-        <span>Plan B: launchd cron setup for Mac (no-crontab, survives sleep)</span>
+        <span>Plan B: launchd cron для Mac (без crontab, выживает после sleep)</span>
       </li>
       <li class="roadmap-item">
         <span class="status-plan">[ ]</span>
-        <span>Windows and Linux support</span>
+        <span>Поддержка Windows и Linux</span>
       </li>
     </ul>
   </div>
@@ -741,8 +745,8 @@ export UV_BIN="$HOME/.local/bin/uv"</pre>
   <div class="container">
     <div class="footer-inner">
       <p class="footer-text">
-        MIT License. Inspired by <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">Andrej Karpathy's LLM Wiki</a>.
-        Built with <a href="https://docs.anthropic.com/en/docs/claude-code/hooks">Claude Code hooks</a> + Haiku 4.5.
+        MIT License. Вдохновлён <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">паттерном LLM Wiki Андрея Карпати</a>.
+        Построен на <a href="https://docs.anthropic.com/en/docs/claude-code/hooks">Claude Code hooks</a> + Haiku 4.5.
       </p>
       <ul class="footer-links">
         <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree">GitHub</a></li>

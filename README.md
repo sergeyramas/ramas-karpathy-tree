@@ -1,71 +1,71 @@
 # Ramas-Karpathy-Tree
 
-**A cwd-aware, per-project memory layer for Claude Code, built on top of Karpathy's LLM Wiki pattern.**
+**cwd-aware слой памяти для Claude Code, основанный на паттерне Karpathy LLM Wiki.**
 
-Version `v2-foundation-2026-05-01` — 18/18 tests passing.
-
----
-
-## The Problem
-
-Claude Code has no persistent memory across sessions. The common workaround — a `CLAUDE.md` + daily session flush into a flat knowledge base — works fine for one project. It breaks when you have several:
-
-- Every session loads context from all projects, burning tokens on things that don't matter right now.
-- A refactoring decision from `work-api` contaminates the context when you're debugging `sideproject`.
-- Flush quality degrades because the LLM must pattern-match which facts belong to which codebase.
-- Cost scales with the total number of projects, not the current one.
+Версия `v2-foundation-2026-05-01` — 18/18 тестов проходят.
 
 ---
 
-## The Solution: A Tree, Not a Flat File
+## Проблема
+
+У Claude Code нет постоянной памяти между сессиями. Стандартный обходной путь — `CLAUDE.md` + ежедневный flush в плоскую базу знаний — работает нормально для одного проекта. Но ломается, когда проектов несколько:
+
+- Каждая сессия загружает контекст из всех проектов, тратя токены на то, что сейчас неважно.
+- Решения по рефакторингу из `work-api` загрязняют контекст, когда вы отлаживаете `sideproject`.
+- Качество flush деградирует: LLM должен угадывать, какие факты к какой кодовой базе относятся.
+- Стоимость растёт пропорционально общему числу проектов, а не текущему.
+
+---
+
+## Решение: Дерево, а не плоский файл
 
 ```
-ROOTS (archive)     wiki/_archive/   — old knowledge, out of active context
-TRUNK (always on)   ~/CLAUDE.md + Karpathy_Guidelines + global MEMORY.md + wiki/index.md
-BRANCHES (on demand) entities/ ideas/ references/ — loaded when referenced
-LEAVES (cwd-routed) wiki/projects/<slug>/{index,MEMORY,decisions,journal/}
-HOT-STATE (in repo) <project>/AGENT_ACTIVITY.md
+КОРНИ (архив)      wiki/_archive/   — старые знания, вне активного контекста
+СТВОЛ (всегда)     ~/CLAUDE.md + Karpathy_Guidelines + global MEMORY.md + wiki/index.md
+ВЕТКИ (по запросу) entities/ ideas/ references/ — загружаются при обращении
+ЛИСТИКИ (cwd)      wiki/projects/<slug>/{index,MEMORY,decisions,journal/}
+HOT-STATE (в репо) <project>/AGENT_ACTIVITY.md
 ```
 
-Each session loads only the leaf for the project whose directory it starts in. Other projects are silent.
+Каждая сессия загружает только листик для проекта, в директории которого она стартует. Остальные проекты молчат.
 
 ---
 
-## Karpathy Original vs Ramas-Karpathy-Tree
+## Оригинальный паттерн Карпати vs Ramas-Karpathy-Tree
 
-| Dimension | Karpathy LLM Wiki | Ramas-Karpathy-Tree |
-|-----------|------------------|---------------------|
-| Daily logs | `daily/<date>.md` — one file, all projects | `daily/<slug>/<date>.md` — isolated per project |
-| Session start | Loads full `knowledge/index.md` | Loads only the active slug's leaf + trunk |
-| Project isolation | None — all knowledge in one pool | Strict: slug routing prevents cross-project leaks |
-| Pre-filter | None — every session costs money | Deterministic Python skip: empty / too-short / bash-only sessions → $0 |
-| Flush model | Configurable | Haiku 4.5 (~$0.005/flush) — cheap enough to run every session |
-| Memory structure | One flat `MEMORY.md` | Two-tier: global (≤20 lines) + per-project (≤30 lines), cwd-routed |
-| Compile step | `compile.py` runs nightly (Sonnet) | Foundation ships without compile; Plan B adds it in a future iteration |
-| Test coverage | Not specified | 18 unit tests, TDD from day 1 |
+| Параметр | Karpathy LLM Wiki | Ramas-Karpathy-Tree |
+|----------|------------------|---------------------|
+| Дневные логи | `daily/<date>.md` — один файл, все проекты | `daily/<slug>/<date>.md` — изолированы по проекту |
+| Старт сессии | Загружает весь `knowledge/index.md` | Загружает только листик активного slug + ствол |
+| Изоляция проектов | Нет — все знания в одном пуле | Строгая: slug routing исключает межпроектные утечки |
+| Pre-filter | Нет — каждая сессия стоит денег | Детерминированный Python-пропуск: пустые / короткие / только bash → $0 |
+| Модель flush | Настраивается | Haiku 4.5 (~$0.005/flush) — достаточно дёшево для каждой сессии |
+| Структура памяти | Один плоский `MEMORY.md` | Двухуровневая: глобальная (≤20 строк) + per-project (≤30 строк), cwd-маршрутизация |
+| Компиляция | `compile.py` запускается ночью (Sonnet) | Foundation выходит без compile; Plan B добавит его в следующей итерации |
+| Покрытие тестами | Не указано | 18 юнит-тестов, TDD с первого дня |
 
 ---
 
-## Architecture
+## Архитектура
 
 ```
 ~/.claude-memory-compiler/
-  projects.json            # cwd → slug routing table (YOU edit this)
+  projects.json            # таблица маршрутизации cwd → slug (редактируете вы)
   scripts/
-    slug_router.py         # pure Python, longest-prefix match, no deps
-    pre_filter.py          # deterministic skip-trivial logic
-    flush.py               # per-slug daily log writer + Haiku 4.5
-    config.py              # paths, models, env var overrides
-    utils.py               # shared helpers
+    slug_router.py         # чистый Python, longest-prefix match, без зависимостей
+    pre_filter.py          # детерминированная логика пропуска тривиальных сессий
+    flush.py               # запись дневного лога по slug + Haiku 4.5
+    config.py              # пути, модели, переопределения через env vars
+    utils.py               # общие вспомогательные функции
   hooks/
-    session-start.py       # cwd-aware: builds context from trunk + active leaf only
-    session-end.py         # passes cwd to flush.py (background process)
-    pre-compact.py         # fires before auto-compaction — saves what would be lost
+    session-start.py       # cwd-aware: собирает контекст из ствола + активного листика
+    session-end.py         # передаёт cwd в flush.py (фоновый процесс)
+    pre-compact.py         # срабатывает перед авто-компакцией — сохраняет то, что иначе потеряется
   daily/
     <slug>/
-      <date>.md            # per-project session stenography
+      <date>.md            # стенография сессий по проекту
   knowledge/
-    index.md               # master catalog (Plan B: auto-updated by compile.py)
+    index.md               # мастер-каталог (Plan B: обновляется автоматически через compile.py)
   tests/
     test_slug_router.py
     test_pre_filter.py
@@ -74,67 +74,67 @@ Each session loads only the leaf for the project whose directory it starts in. O
     fixtures/
 ```
 
-### Data Flow
+### Поток данных
 
 ```
-Session starts
-  └─> session-start.py reads cwd
+Сессия стартует
+  └─> session-start.py читает cwd
       └─> slug_router.py: cwd → "myapp"
-          └─> loads trunk + wiki/projects/myapp/* only
-              └─> injects ~3-5k tokens of relevant context
+          └─> загружает ствол + wiki/projects/myapp/* только
+              └─> инжектирует ~3-5k токенов релевантного контекста
 
-Session ends
-  └─> session-end.py extracts transcript → context file
-      └─> pre_filter.py: skip if empty / <1k chars / bash-only
-          └─> spawns flush.py (background, non-blocking)
-              └─> Haiku 4.5: extract structured summary
-                  └─> appends to daily/myapp/<date>.md
+Сессия завершается
+  └─> session-end.py извлекает транскрипт → context file
+      └─> pre_filter.py: пропустить если пусто / <1k символов / только bash
+          └─> запускает flush.py (фон, неблокирующий)
+              └─> Haiku 4.5: извлекает структурированную выжимку
+                  └─> дописывает в daily/myapp/<date>.md
 ```
 
 ---
 
-## Cost
+## Стоимость
 
-For an active developer working 4 projects, ~3-5 sessions/day:
+Для активного разработчика с 4 проектами, ~3-5 сессий в день:
 
-| Component | Cost |
-|-----------|------|
-| Session flush (Haiku 4.5) | ~$0.005/flush × 100/month = ~$0.50 |
-| Session start context (Sonnet 4.6) | ~$0.01/session × 150/month = ~$1.50 |
-| Pre-filter savings | ~40-60% of flushes skipped = ~$0.25 saved |
-| Plan B: nightly compile (Sonnet 4.6) | ~$0.10/compile × 30 = ~$3 |
-| **Total** | **~$5-15/month** |
+| Компонент | Стоимость |
+|-----------|-----------|
+| Session flush (Haiku 4.5) | ~$0.005/flush × 100/мес = ~$0.50 |
+| Старт сессии — контекст (Sonnet 4.6) | ~$0.01/сессия × 150/мес = ~$1.50 |
+| Экономия от pre-filter | ~40-60% flush-ов пропускается = ~$0.25 экономии |
+| Plan B: ночная компиляция (Sonnet 4.6) | ~$0.10/компиляция × 30 = ~$3 |
+| **Итого** | **~$5-15/мес** |
 
-Without the pre-filter and per-slug isolation, a naive full-context load + flush per session runs $30-80/month for the same workload.
+Без pre-filter и per-slug изоляции наивная полная загрузка контекста + flush на каждую сессию обходится в $30-80/мес при той же нагрузке.
 
 ---
 
-## Quick Start (Mac)
+## Быстрый старт (Mac)
 
-**Requirements:** Python 3.12+, [uv](https://astral.sh/uv), Claude Code 1.x, an Obsidian vault (or any directory you want to use as your wiki).
+**Требования:** Python 3.12+, [uv](https://astral.sh/uv), Claude Code 1.x, Obsidian vault (или любая директория для wiki).
 
-### Step 1: Clone
+### Шаг 1: Клонируем
 
 ```bash
 git clone https://github.com/sergeyramas/ramas-karpathy-tree ~/.claude-memory-compiler
 cd ~/.claude-memory-compiler
 ```
 
-### Step 2: Install dependencies
+### Шаг 2: Устанавливаем зависимости
 
 ```bash
 uv sync
 ```
 
-### Step 3: Configure
+### Шаг 3: Настраиваем
 
-Copy the projects template and edit it:
+Копируем шаблон projects и редактируем:
 
 ```bash
 cp projects.json.example projects.json
 ```
 
-Edit `projects.json` to map your working directories to slugs:
+Редактируем `projects.json` — маппинг рабочих директорий на slug:
 
 ```json
 {
@@ -148,16 +148,16 @@ Edit `projects.json` to map your working directories to slugs:
 }
 ```
 
-Set your vault path (add to `~/.zshrc` or `~/.bashrc`):
+Указываем путь к vault (добавляем в `~/.zshrc` или `~/.bashrc`):
 
 ```bash
 export VAULT_DIR="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/YourVault"
-export UV_BIN="$HOME/.local/bin/uv"   # or: which uv
+export UV_BIN="$HOME/.local/bin/uv"   # или: which uv
 ```
 
-### Step 4: Register hooks
+### Шаг 4: Регистрируем hooks
 
-Add to `~/.claude/settings.json`:
+Добавляем в `~/.claude/settings.json`:
 
 ```json
 {
@@ -196,65 +196,65 @@ Add to `~/.claude/settings.json`:
 }
 ```
 
-Replace `/Users/you` with your actual home directory path.
+Заменяем `/Users/you` на ваш реальный домашний путь.
 
-### Step 5: Run tests
+### Шаг 5: Запускаем тесты
 
 ```bash
 uv run pytest tests/ -v
 ```
 
-All 18 tests should pass. Then start a Claude Code session in one of your configured project directories and check `daily/<slug>/` for your first log entry.
+Все 18 тестов должны пройти. Затем запустите сессию Claude Code в одной из настроенных директорий и проверьте `daily/<slug>/` — там появится первый лог.
 
 ---
 
-## Configuration
+## Конфигурация
 
-All paths are configurable via environment variables. No hardcoded user paths in the core code.
+Все пути настраиваются через переменные окружения. Жёстко заданных пользовательских путей в коде нет.
 
-| Variable | Default | Description |
-|----------|---------|-------------|
-| `VAULT_DIR` | `~/obsidian-vault` | Root of your Obsidian/wiki vault |
-| `UV_BIN` | `~/.local/bin/uv` | Absolute path to uv binary |
-| `CLAUDE_MD` | `~/CLAUDE.md` | Path to your trunk CLAUDE.md file |
-| `MEMORY_MD` | `~/.claude/projects/memory/MEMORY.md` | Path to global MEMORY.md |
+| Переменная | По умолчанию | Описание |
+|------------|--------------|----------|
+| `VAULT_DIR` | `~/obsidian-vault` | Корень вашего Obsidian/wiki vault |
+| `UV_BIN` | `~/.local/bin/uv` | Абсолютный путь к бинарнику uv |
+| `CLAUDE_MD` | `~/CLAUDE.md` | Путь к файлу ствола CLAUDE.md |
+| `MEMORY_MD` | `~/.claude/projects/memory/MEMORY.md` | Путь к глобальному MEMORY.md |
 
-Edit `scripts/config.py` for deeper customization (flush model, char threshold, timezone).
-
----
-
-## Roadmap
-
-- [x] **Foundation** (this release): cwd routing + pre-filter + per-slug flush + cwd-aware session-start + two-tier MEMORY scaffold
-- [ ] **Plan B**: `compile.py` — nightly Sonnet digest of daily logs into `knowledge/` articles
-- [ ] **Plan B**: `digest.py` — weekly cross-project synthesis
-- [ ] **Plan B**: `cleanup.py` — archive old daily logs, prune stale knowledge
-- [ ] **Plan B**: `launchd` cron setup for Mac (no-crontab, survives sleep)
-- [ ] Windows support (hooks tested on Mac only)
-- [ ] Linux support
-
-Plan B will be developed once the foundation has run in production for ~1 week.
+Для более глубокой настройки (модель flush, порог символов, часовой пояс) — редактируйте `scripts/config.py`.
 
 ---
 
-## Notes on Privacy
+## Роадмап
 
-`projects.json` is in `.gitignore` — it contains your real directory paths and project names, which you probably don't want public. The `.json.example` template is committed instead.
+- [x] **Foundation** (этот релиз): cwd routing + pre-filter + per-slug flush + cwd-aware session-start + двухуровневый scaffold MEMORY
+- [ ] **Plan B**: `compile.py` — ночной дайджест дневных логов в статьи `knowledge/` через Sonnet
+- [ ] **Plan B**: `digest.py` — еженедельный кросс-проектный синтез
+- [ ] **Plan B**: `cleanup.py` — архивирование старых дневных логов, удаление устаревших знаний
+- [ ] **Plan B**: `launchd` cron для Mac (без crontab, выживает после sleep)
+- [ ] Поддержка Windows (hooks тестировались только на Mac)
+- [ ] Поддержка Linux
 
-The `daily/`, `knowledge/`, and `logs/` directories are also gitignored — these contain your session transcripts and compiled knowledge, which is personal.
+Plan B будет разрабатываться после ~1 недели работы Foundation в продакшене.
 
 ---
 
-## License
+## Конфиденциальность
+
+`projects.json` находится в `.gitignore` — в нём ваши реальные пути и названия проектов, которые вы, вероятно, не хотите публиковать. Вместо него в репо закоммичен шаблон `.json.example`.
+
+Директории `daily/`, `knowledge/` и `logs/` тоже в gitignore — они содержат транскрипты ваших сессий и скомпилированные знания, которые являются личными данными.
+
+---
+
+## Лицензия
 
 MIT
 
 ---
 
-## Credits
+## Благодарности
 
-Inspired by [Andrej Karpathy's LLM Wiki pattern](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
+Вдохновлён [паттерном LLM Wiki Андрея Карпати](https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f).
 
-Built on [Anthropic's Claude Agent SDK](https://docs.anthropic.com/en/api/overview) and [Claude Code hooks](https://docs.anthropic.com/en/docs/claude-code/hooks).
+Построен на [Anthropic Claude Agent SDK](https://docs.anthropic.com/en/api/overview) и [Claude Code hooks](https://docs.anthropic.com/en/docs/claude-code/hooks).
 
-Stack: Python 3.12, uv, pytest, Haiku 4.5 (flush), Sonnet 4.6 (compile — Plan B).
+Стек: Python 3.12, uv, pytest, Haiku 4.5 (flush), Sonnet 4.6 (compile — Plan B).

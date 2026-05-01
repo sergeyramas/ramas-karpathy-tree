@@ -1,41 +1,41 @@
 #!/usr/bin/env bash
-# Ramas-Karpathy-Tree — quick install for Mac
-# See README.md for full setup guide.
+# Ramas-Karpathy-Tree — быстрая установка для Mac
+# Полное руководство по настройке — в README.md.
 set -euo pipefail
 
 INSTALL_DIR="$HOME/.claude-memory-compiler"
 SETTINGS="$HOME/.claude/settings.json"
 
-echo "==> Installing Ramas-Karpathy-Tree to $INSTALL_DIR"
+echo "==> Устанавливаем Ramas-Karpathy-Tree в $INSTALL_DIR"
 
-# 1. Copy files
+# 1. Копируем файлы
 cp -r "$(dirname "$0")" "$INSTALL_DIR"
 cd "$INSTALL_DIR"
 
-# 2. Copy projects.json template if not already present
+# 2. Копируем шаблон projects.json если ещё не существует
 if [ ! -f "projects.json" ]; then
   cp projects.json.example projects.json
-  echo "  Created projects.json from example — edit it to map your cwd paths to slugs."
+  echo "  Создан projects.json из шаблона — отредактируйте его, добавив маппинг cwd → slug."
 fi
 
-# 3. Create required directories
+# 3. Создаём нужные директории
 mkdir -p daily logs knowledge/concepts knowledge/connections knowledge/qa reports
 
-# 4. Sync dependencies with uv
+# 4. Синхронизируем зависимости через uv
 if command -v uv &>/dev/null; then
   uv sync
 else
-  echo "  uv not found. Install with: curl -fsSL https://astral.sh/uv/install.sh | sh"
+  echo "  uv не найден. Установите командой: curl -fsSL https://astral.sh/uv/install.sh | sh"
   exit 1
 fi
 
-# 5. Remind about hooks registration
+# 5. Напоминаем о регистрации hooks
 echo ""
-echo "==> Next steps:"
-echo "  1. Edit $INSTALL_DIR/projects.json — add your projects and cwd paths."
-echo "  2. Set VAULT_DIR in your environment (or edit hooks/session-start.py):"
+echo "==> Следующие шаги:"
+echo "  1. Отредактируйте $INSTALL_DIR/projects.json — добавьте ваши проекты и cwd пути."
+echo "  2. Укажите VAULT_DIR в окружении (или отредактируйте hooks/session-start.py):"
 echo "       export VAULT_DIR=\"\$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/YourVault\""
-echo "  3. Register hooks in $SETTINGS — see README.md 'Step 4: Register hooks'."
-echo "  4. Run tests: cd $INSTALL_DIR && uv run pytest tests/ -v"
+echo "  3. Зарегистрируйте hooks в $SETTINGS — см. README.md 'Шаг 4: Регистрируем hooks'."
+echo "  4. Запустите тесты: cd $INSTALL_DIR && uv run pytest tests/ -v"
 echo ""
-echo "Done."
+echo "Готово."
