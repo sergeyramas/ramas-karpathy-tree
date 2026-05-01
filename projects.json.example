@@ -1,0 +1,17 @@
+{
+  "routes": [
+    {
+      "slug": "myapp",
+      "cwd_prefixes": ["/Users/yourname/code/myapp", "/Users/yourname/code/myapp-worktree"]
+    },
+    {
+      "slug": "sideproject",
+      "cwd_prefixes": ["/Users/yourname/code/sideproject"]
+    },
+    {
+      "slug": "work-api",
+      "cwd_prefixes": ["/Users/yourname/work/api"]
+    }
+  ],
+  "fallback_slug": "_global"
+}

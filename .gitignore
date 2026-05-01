@@ -1,0 +1,25 @@
+# Python
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.coverage
+.pytest_cache/
+
+# Runtime state (personal, not committed)
+projects.json
+scripts/state.json
+scripts/last-flush.json
+scripts/flush.log
+scripts/compile.log
+scripts/flush-context-*.md
+scripts/session-flush-*.md
+logs/
+reports/
+daily/
+knowledge/
+
+# Editor
+.DS_Store
+*.swp
+*.swo

@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Ramas-Karpathy-Tree — Per-project memory for Claude Code</title>
+  <style>
+    :root {
+      --bg: #0d0d0d;
+      --surface: #141414;
+      --border: #222;
+      --border-subtle: #1a1a1a;
+      --text: #e8e8e8;
+      --text-dim: #888;
+      --text-dimmer: #555;
+      --accent: #7c6fcd;
+      --accent-dim: #3d3680;
+      --green: #4ade80;
+      --orange: #fb923c;
+      --red: #f87171;
+      --mono: 'JetBrains Mono', 'Fira Code', 'Cascadia Code', ui-monospace, monospace;
+      --sans: -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    html { font-size: 16px; scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--sans);
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a { color: var(--accent); text-decoration: none; }
+    a:hover { text-decoration: underline; }
+
+    /* ── Layout ── */
+    .container {
+      max-width: 860px;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+
+    section {
+      padding: 6rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+    }
+
+    section:last-child { border-bottom: none; }
+
+    /* ── Nav ── */
+    nav {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(13,13,13,0.9);
+      backdrop-filter: blur(8px);
+      border-bottom: 1px solid var(--border);
+      padding: 1rem 0;
+    }
+
+    nav .container {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .nav-logo {
+      font-family: var(--mono);
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      letter-spacing: 0.05em;
+    }
+
+    .nav-links {
+      display: flex;
+      gap: 2rem;
+      list-style: none;
+    }
+
+    .nav-links a {
+      font-size: 0.85rem;
+      color: var(--text-dim);
+      transition: color 0.15s;
+    }
+
+    .nav-links a:hover { color: var(--text); text-decoration: none; }
+
+    /* ── Hero ── */
+    .hero {
+      padding: 8rem 0 6rem;
+    }
+
+    .eyebrow {
+      font-family: var(--mono);
+      font-size: 0.75rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--accent);
+      margin-bottom: 1.5rem;
+    }
+
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 700;
+      line-height: 1.15;
+      letter-spacing: -0.03em;
+      margin-bottom: 1.5rem;
+    }
+
+    h1 span.dim { color: var(--text-dim); font-weight: 400; }
+
+    .hero-sub {
+      font-size: 1.1rem;
+      color: var(--text-dim);
+      max-width: 600px;
+      margin-bottom: 2.5rem;
+      line-height: 1.7;
+    }
+
+    .btn-row {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.6rem 1.4rem;
+      border-radius: 6px;
+      font-size: 0.9rem;
+      font-weight: 500;
+      transition: all 0.15s;
+      cursor: pointer;
+    }
+
+    .btn-primary {
+      background: var(--accent);
+      color: #fff;
+      border: 1px solid var(--accent);
+    }
+
+    .btn-primary:hover {
+      background: #6b5fc4;
+      border-color: #6b5fc4;
+      text-decoration: none;
+    }
+
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-dim);
+      border: 1px solid var(--border);
+    }
+
+    .btn-ghost:hover {
+      background: var(--surface);
+      color: var(--text);
+      text-decoration: none;
+    }
+
+    /* ── ASCII Tree ── */
+    .tree-block {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.8;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 2rem;
+      overflow-x: auto;
+    }
+
+    .tree-roots { color: #64748b; }
+    .tree-trunk { color: var(--text); }
+    .tree-branches { color: #94a3b8; }
+    .tree-leaves { color: var(--accent); }
+    .tree-hot { color: var(--green); }
+    .tree-label { color: var(--text-dimmer); }
+
+    /* ── Section titles ── */
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 600;
+      letter-spacing: -0.02em;
+      margin-bottom: 1.25rem;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 600;
+      margin-bottom: 0.5rem;
+      color: var(--text);
+    }
+
+    /* ── Problem / Solution ── */
+    .pain-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 1.5rem;
+    }
+
+    .pain-item {
+      display: flex;
+      gap: 1rem;
+      align-items: flex-start;
+      padding: 1rem 1.25rem;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+    }
+
+    .pain-icon { font-family: var(--mono); color: var(--red); flex-shrink: 0; }
+    .pain-text { font-size: 0.95rem; color: var(--text-dim); }
+
+    /* ── Before / After ── */
+    .compare-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+      margin-top: 2rem;
+    }
+
+    @media (max-width: 640px) {
+      .compare-grid { grid-template-columns: 1fr; }
+    }
+
+    .compare-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+    }
+
+    .compare-card.after {
+      border-color: var(--accent-dim);
+    }
+
+    .compare-tag {
+      font-family: var(--mono);
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
+      margin-bottom: 1rem;
+    }
+
+    .compare-tag.after-tag { color: var(--accent); }
+
+    .compare-card ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 0.6rem;
+    }
+
+    .compare-card li {
+      font-size: 0.875rem;
+      color: var(--text-dim);
+      padding-left: 1.25rem;
+      position: relative;
+    }
+
+    .compare-card li::before {
+      content: '—';
+      position: absolute;
+      left: 0;
+      color: var(--text-dimmer);
+    }
+
+    .compare-card.after li::before {
+      content: '+';
+      color: var(--green);
+    }
+
+    /* ── Code blocks ── */
+    .code-label {
+      font-family: var(--mono);
+      font-size: 0.72rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--text-dimmer);
+      margin-bottom: 0.75rem;
+    }
+
+    pre {
+      font-family: var(--mono);
+      font-size: 0.82rem;
+      line-height: 1.7;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 1.5rem;
+      overflow-x: auto;
+      color: var(--text-dim);
+    }
+
+    .kw { color: #c792ea; }
+    .fn { color: #82aaff; }
+    .str { color: #c3e88d; }
+    .cmt { color: #546e7a; font-style: italic; }
+    .num { color: var(--orange); }
+
+    /* ── Feature table ── */
+    .feat-table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 0.875rem;
+      margin-top: 1.5rem;
+    }
+
+    .feat-table th {
+      text-align: left;
+      padding: 0.75rem 1rem;
+      background: var(--surface);
+      color: var(--text-dim);
+      font-weight: 500;
+      border-bottom: 1px solid var(--border);
+      font-size: 0.8rem;
+      letter-spacing: 0.04em;
+    }
+
+    .feat-table td {
+      padding: 0.75rem 1rem;
+      border-bottom: 1px solid var(--border-subtle);
+      color: var(--text-dim);
+      vertical-align: top;
+    }
+
+    .feat-table tr:last-child td { border-bottom: none; }
+
+    .feat-table td:first-child { color: var(--text); font-weight: 500; }
+
+    .tag-new {
+      font-family: var(--mono);
+      font-size: 0.65rem;
+      background: var(--accent-dim);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 0.1rem 0.4rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      vertical-align: middle;
+      margin-left: 0.4rem;
+    }
+
+    /* ── Cost ── */
+    .cost-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 0.75rem 0;
+      border-bottom: 1px solid var(--border-subtle);
+      font-size: 0.9rem;
+    }
+
+    .cost-row:last-child { border-bottom: none; }
+
+    .cost-row .cost-label { color: var(--text-dim); }
+
+    .cost-row .cost-val {
+      font-family: var(--mono);
+      color: var(--text);
+      font-size: 0.85rem;
+    }
+
+    .cost-total {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0 1.5rem;
+      margin-top: 1.5rem;
+    }
+
+    .cost-total .cost-row:last-child {
+      font-weight: 600;
+      color: var(--text);
+    }
+
+    /* ── Roadmap ── */
+    .roadmap-list {
+      list-style: none;
+      margin-top: 1.5rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .roadmap-item {
+      display: flex;
+      gap: 0.75rem;
+      align-items: flex-start;
+      font-size: 0.9rem;
+      color: var(--text-dim);
+    }
+
+    .status-done { color: var(--green); font-family: var(--mono); }
+    .status-wip  { color: var(--orange); font-family: var(--mono); }
+    .status-plan { color: var(--text-dimmer); font-family: var(--mono); }
+
+    /* ── Footer ── */
+    footer {
+      padding: 3rem 0;
+      border-top: 1px solid var(--border);
+    }
+
+    .footer-inner {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+
+    .footer-text {
+      font-size: 0.82rem;
+      color: var(--text-dimmer);
+    }
+
+    .footer-links {
+      display: flex;
+      gap: 1.5rem;
+      list-style: none;
+    }
+
+    .footer-links a {
+      font-size: 0.82rem;
+      color: var(--text-dimmer);
+      transition: color 0.15s;
+    }
+
+    .footer-links a:hover { color: var(--text); text-decoration: none; }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="container">
+    <span class="nav-logo">ramas-karpathy-tree</span>
+    <ul class="nav-links">
+      <li><a href="#problem">Problem</a></li>
+      <li><a href="#how-it-works">How it works</a></li>
+      <li><a href="#comparison">vs. Original</a></li>
+      <li><a href="#quickstart">Quick start</a></li>
+      <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree">GitHub</a></li>
+    </ul>
+  </div>
+</nav>
+
+<!-- ── Hero ── -->
+<section class="hero" id="hero">
+  <div class="container">
+    <div class="eyebrow">Memory Architecture v2 — Foundation Release</div>
+    <h1>Per-project memory<br/><span class="dim">for Claude Code.</span></h1>
+    <p class="hero-sub">
+      A cwd-aware, per-project memory layer built on top of Karpathy's LLM Wiki pattern.
+      Each session loads only what's relevant to the project you're in.
+      Everything else stays quiet.
+    </p>
+    <div class="btn-row">
+      <a class="btn btn-primary" href="https://github.com/sergeyramas/ramas-karpathy-tree">View on GitHub</a>
+      <a class="btn btn-ghost" href="#quickstart">Quick start →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Tree Visual ── -->
+<section id="tree">
+  <div class="container">
+    <div class="tree-block">
+<pre style="background:none;border:none;padding:0;font-size:0.82rem;">
+<span class="tree-label">~/.claude-memory-compiler/</span>
+<span class="tree-label">│</span>
+<span class="tree-roots">├── ROOTS        wiki/_archive/                     ← archived knowledge</span>
+<span class="tree-trunk">├── TRUNK        ~/CLAUDE.md                        ← always loaded</span>
+<span class="tree-trunk">│              Karpathy_Guidelines.md</span>
+<span class="tree-trunk">│              global MEMORY.md</span>
+<span class="tree-trunk">│              wiki/index.md (100 lines)</span>
+<span class="tree-branches">├── BRANCHES     entities/  ideas/  references/      ← on demand</span>
+<span class="tree-leaves">├── LEAVES       wiki/projects/myapp/               ← active slug only</span>
+<span class="tree-leaves">│                ├── index.md</span>
+<span class="tree-leaves">│                ├── MEMORY.md      (≤30 lines)</span>
+<span class="tree-leaves">│                └── journal/2026-05-01.md</span>
+<span class="tree-hot">└── HOT-STATE    myapp/AGENT_ACTIVITY.md            ← live changes</span>
+</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── Problem ── -->
+<section id="problem">
+  <div class="container">
+    <h2>What breaks at scale</h2>
+    <p style="color:var(--text-dim);margin-bottom:0.5rem">
+      The flat Karpathy pattern works for one project. When you have four:
+    </p>
+    <ul class="pain-list">
+      <li class="pain-item">
+        <span class="pain-icon">✗</span>
+        <span class="pain-text">Every session loads knowledge from all projects. Debugging <code style="font-family:var(--mono);font-size:0.85em">sideproject</code> while paying for <code style="font-family:var(--mono);font-size:0.85em">work-api</code> context.</span>
+      </li>
+      <li class="pain-item">
+        <span class="pain-icon">✗</span>
+        <span class="pain-text">A decision from one codebase bleeds into another. The LLM sees "use Postgres" from a different project and applies it everywhere.</span>
+      </li>
+      <li class="pain-item">
+        <span class="pain-icon">✗</span>
+        <span class="pain-text">Every session flushes — even sessions that were just <code style="font-family:var(--mono);font-size:0.85em">ls</code> and <code style="font-family:var(--mono);font-size:0.85em">pwd</code>. You pay API cost for nothing.</span>
+      </li>
+      <li class="pain-item">
+        <span class="pain-icon">✗</span>
+        <span class="pain-text">Cost scales with the number of projects in your wiki, not with your actual current work.</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ── How it works ── -->
+<section id="how-it-works">
+  <div class="container">
+    <h2>How it works</h2>
+
+    <div class="compare-grid">
+      <div class="compare-card">
+        <div class="compare-tag">Karpathy original</div>
+        <ul>
+          <li>Flat daily log — one file, all projects</li>
+          <li>SessionStart loads full knowledge/index.md</li>
+          <li>Every session flushes to LLM</li>
+          <li>Single MEMORY.md for all context</li>
+          <li>No project isolation</li>
+        </ul>
+      </div>
+      <div class="compare-card after">
+        <div class="compare-tag after-tag">Ramas-Karpathy-Tree</div>
+        <ul>
+          <li>daily/&lt;slug&gt;/&lt;date&gt;.md — per project</li>
+          <li>SessionStart loads trunk + active leaf only</li>
+          <li>Pre-filter: trivial sessions skip LLM call ($0)</li>
+          <li>Two-tier MEMORY — global + per-project</li>
+          <li>Strict slug isolation via cwd routing</li>
+        </ul>
+      </div>
+    </div>
+
+    <div style="margin-top:3rem">
+      <div class="code-label">slug_router.py — longest-prefix cwd match</div>
+      <pre><span class="kw">def</span> <span class="fn">resolve_slug</span>(cwd: <span class="fn">str</span>, config_path: Path) -&gt; <span class="fn">str</span>:
+    <span class="cmt">"""Return slug for cwd, or '_global' if no prefix matches."""</span>
+    config = json.loads(config_path.read_text())
+    routes = config.get(<span class="str">"routes"</span>, [])
+    fallback = config.get(<span class="str">"fallback_slug"</span>, <span class="str">"_global"</span>)
+
+    best_slug, best_len = fallback, <span class="num">0</span>
+    <span class="kw">for</span> route <span class="kw">in</span> routes:
+        <span class="kw">for</span> prefix <span class="kw">in</span> route.get(<span class="str">"cwd_prefixes"</span>, []):
+            <span class="kw">if</span> cwd.startswith(prefix) <span class="kw">and</span> len(prefix) &gt; best_len:
+                best_len = len(prefix)
+                best_slug = route[<span class="str">"slug"</span>]
+
+    <span class="kw">return</span> best_slug</pre>
+    </div>
+
+    <div style="margin-top:2rem">
+      <div class="code-label">pre_filter.py — deterministic skip, no LLM cost</div>
+      <pre><span class="kw">def</span> <span class="fn">should_flush</span>(transcript: <span class="fn">str</span>, char_threshold: <span class="fn">int</span> = <span class="num">1000</span>) -&gt; FilterDecision:
+    <span class="kw">if not</span> transcript.strip():
+        <span class="kw">return</span> FilterDecision(<span class="kw">False</span>, FilterReason.EMPTY)
+
+    <span class="kw">if</span> len(transcript) &lt; char_threshold:
+        <span class="kw">return</span> FilterDecision(<span class="kw">False</span>, FilterReason.TOO_SHORT)
+
+    <span class="cmt"># all lines match trivial bash / no-op assistant patterns?</span>
+    non_trivial = sum(
+        <span class="num">1</span> <span class="kw">for</span> line <span class="kw">in</span> transcript.splitlines()
+        <span class="kw">if not</span> any(p.search(line) <span class="kw">for</span> p <span class="kw">in</span> TRIVIAL_PATTERNS)
+    )
+    <span class="kw">if</span> non_trivial == <span class="num">0</span>:
+        <span class="kw">return</span> FilterDecision(<span class="kw">False</span>, FilterReason.TRIVIAL_OPS)
+
+    <span class="kw">return</span> FilterDecision(<span class="kw">True</span>, FilterReason.OK)</pre>
+    </div>
+  </div>
+</section>
+
+<!-- ── Comparison table ── -->
+<section id="comparison">
+  <div class="container">
+    <h2>Karpathy original vs Ramas-Karpathy-Tree</h2>
+    <table class="feat-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>Karpathy LLM Wiki</th>
+          <th>Ramas-Karpathy-Tree</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Daily logs</td>
+          <td>daily/&lt;date&gt;.md — flat, all projects</td>
+          <td>daily/&lt;slug&gt;/&lt;date&gt;.md <span class="tag-new">new</span></td>
+        </tr>
+        <tr>
+          <td>Session start</td>
+          <td>Loads full knowledge/index.md</td>
+          <td>Trunk + active slug's leaf only <span class="tag-new">new</span></td>
+        </tr>
+        <tr>
+          <td>Project isolation</td>
+          <td>None</td>
+          <td>Strict — slug router prevents leaks <span class="tag-new">new</span></td>
+        </tr>
+        <tr>
+          <td>Pre-filter</td>
+          <td>None — every session costs money</td>
+          <td>Deterministic Python — ~40-60% skip rate <span class="tag-new">new</span></td>
+        </tr>
+        <tr>
+          <td>Flush model</td>
+          <td>Configurable</td>
+          <td>Haiku 4.5 — ~$0.005/flush</td>
+        </tr>
+        <tr>
+          <td>Memory structure</td>
+          <td>One MEMORY.md</td>
+          <td>Global (≤20 lines) + per-project (≤30 lines) <span class="tag-new">new</span></td>
+        </tr>
+        <tr>
+          <td>Test coverage</td>
+          <td>Not specified</td>
+          <td>18 unit tests, TDD from day 1</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- ── Cost ── -->
+<section id="cost">
+  <div class="container">
+    <h2>Cost breakdown</h2>
+    <p style="color:var(--text-dim);margin-bottom:0.25rem;font-size:0.9rem">
+      Active developer, 4 projects, ~3-5 sessions/day.
+    </p>
+    <div class="cost-total">
+      <div class="cost-row">
+        <span class="cost-label">Session flush — Haiku 4.5 (~100/mo, after pre-filter)</span>
+        <span class="cost-val">~$0.50</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Session start context — Sonnet 4.6 (~150/mo)</span>
+        <span class="cost-val">~$1.50</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Plan B: nightly compile — Sonnet 4.6 (coming soon)</span>
+        <span class="cost-val">~$3.00</span>
+      </div>
+      <div class="cost-row">
+        <span class="cost-label">Total / month</span>
+        <span class="cost-val" style="color:var(--green)">~$5–15</span>
+      </div>
+    </div>
+    <p style="margin-top:1rem;font-size:0.85rem;color:var(--text-dimmer)">
+      Naive flat approach with same workload: $30–80/month.
+    </p>
+  </div>
+</section>
+
+<!-- ── Quick start ── -->
+<section id="quickstart">
+  <div class="container">
+    <h2>Quick start</h2>
+    <p style="color:var(--text-dim);margin-bottom:2rem;font-size:0.9rem">
+      Mac, Python 3.12+, uv, Claude Code 1.x. Full guide in README.
+    </p>
+
+    <div class="code-label">1. Clone</div>
+    <pre>git clone https://github.com/sergeyramas/ramas-karpathy-tree \
+  ~/.claude-memory-compiler
+cd ~/.claude-memory-compiler</pre>
+
+    <div class="code-label" style="margin-top:1.5rem">2. Install</div>
+    <pre>uv sync</pre>
+
+    <div class="code-label" style="margin-top:1.5rem">3. Configure projects.json</div>
+    <pre>cp projects.json.example projects.json
+# Edit: add your cwd → slug mappings</pre>
+
+    <div class="code-label" style="margin-top:1.5rem">4. Set env vars (add to ~/.zshrc)</div>
+    <pre>export VAULT_DIR="$HOME/Library/Mobile Documents/iCloud~md~obsidian/Documents/YourVault"
+export UV_BIN="$HOME/.local/bin/uv"</pre>
+
+    <div class="code-label" style="margin-top:1.5rem">5. Register hooks in ~/.claude/settings.json, then run tests</div>
+    <pre>uv run pytest tests/ -v
+# 18 passed — you're set.</pre>
+
+    <div class="btn-row" style="margin-top:2rem">
+      <a class="btn btn-primary" href="https://github.com/sergeyramas/ramas-karpathy-tree#quick-start-mac">Full setup guide →</a>
+    </div>
+  </div>
+</section>
+
+<!-- ── Roadmap ── -->
+<section id="roadmap">
+  <div class="container">
+    <h2>Roadmap</h2>
+    <ul class="roadmap-list">
+      <li class="roadmap-item">
+        <span class="status-done">[done]</span>
+        <span>Foundation: cwd routing, pre-filter, per-slug flush, cwd-aware session-start, two-tier MEMORY scaffold</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="status-plan">[ ]</span>
+        <span>Plan B: compile.py — nightly Sonnet digest of daily logs into knowledge/ articles</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="status-plan">[ ]</span>
+        <span>Plan B: digest.py — weekly cross-project synthesis</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="status-plan">[ ]</span>
+        <span>Plan B: launchd cron setup for Mac (no-crontab, survives sleep)</span>
+      </li>
+      <li class="roadmap-item">
+        <span class="status-plan">[ ]</span>
+        <span>Windows and Linux support</span>
+      </li>
+    </ul>
+  </div>
+</section>
+
+<!-- ── Footer ── -->
+<footer>
+  <div class="container">
+    <div class="footer-inner">
+      <p class="footer-text">
+        MIT License. Inspired by <a href="https://gist.github.com/karpathy/442a6bf555914893e9891c11519de94f">Andrej Karpathy's LLM Wiki</a>.
+        Built with <a href="https://docs.anthropic.com/en/docs/claude-code/hooks">Claude Code hooks</a> + Haiku 4.5.
+      </p>
+      <ul class="footer-links">
+        <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree">GitHub</a></li>
+        <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree/blob/main/README.md">Docs</a></li>
+        <li><a href="https://github.com/sergeyramas/ramas-karpathy-tree/issues">Issues</a></li>
+      </ul>
+    </div>
+  </div>
+</footer>
+
+</body>
+</html>
